@@ -1,0 +1,24 @@
+{
+  "name": "zSave — Video Downloader",
+  "short_name": "zSave",
+  "description": "Download video TikTok, Instagram Reels, dan YouTube Shorts tanpa watermark.",
+  "start_url": "/zsave.html",
+  "display": "standalone",
+  "background_color": "#08080f",
+  "theme_color": "#7c3aff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "logosave.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logosave.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
