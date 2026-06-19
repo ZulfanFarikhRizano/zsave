@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zSave — Download Video TikTok, Instagram & YouTube</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7c3aff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="zSave">
+<link rel="apple-touch-icon" href="logosave.png">
+<meta name="description" content="Download video TikTok, Instagram Reels, dan YouTube Shorts tanpa watermark. Gratis dan cepat.">
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Platform colors — tidak diubah */
+    --tiktok: #ff0050;
+    --ig-start: #f09433;
+    --ig-mid: #e6683c;
+    --ig-end: #dc2743;
+    --yt: #ff3b3b;
+    /* Single accent system */
+    --accent: #7c3aff;
+    --accent-dim: rgba(124,58,255,0.15);
+    --accent-border: rgba(124,58,255,0.3);
+    /* Backgrounds */
+    --bg: #09090e;
+    --surface: #111118;
+    --card: #16161f;
+    --card-hover: #1c1c27;
+    /* Borders */
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.11);
+    /* Text */
+    --text: #ededf5;
+    --muted: rgba(237,237,245,0.4);
+    --muted2: rgba(237,237,245,0.22);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ── BACKGROUND — satu orb saja, subtle ── */
+  .bg-layer {
+    position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  }
+  .bg-orb {
+    position: absolute; border-radius: 50%; filter: blur(120px);
+    animation: drift 25s ease-in-out infinite alternate;
+  }
+  .orb1 { width: 700px; height: 700px; background: var(--accent); opacity: 0.07; top: -280px; left: -200px; }
+  .orb2 { width: 500px; height: 500px; background: #ff0050; opacity: 0.04; bottom: -180px; right: -150px; animation-delay: -12s; }
+  .orb3 { display: none; }
+  .orb4 { display: none; }
+
+  @keyframes drift {
+    from { transform: translate(0, 0); }
+    to   { transform: translate(30px, 50px); }
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper { position: relative; z-index: 1; }
+
+  /* ── NAV ── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    background: rgba(9,9,14,0.7);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo-img {
+    height: 34px; width: auto; object-fit: contain; display: block;
+  }
+  .nav-badge {
+    font-size: 11.5px; font-weight: 500; color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 5px 14px; border-radius: 100px;
+    letter-spacing: 0.4px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    text-align: center;
+    padding: 96px 24px 56px;
+    max-width: 860px; margin: 0 auto;
+  }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-border);
+    padding: 6px 15px; border-radius: 100px;
+    font-size: 12.5px; font-weight: 500; color: #c4aaff;
+    margin-bottom: 28px;
+    animation: fadeUp 0.7s ease both;
+  }
+  .hero-tag::before { content: '✦'; font-size: 9px; opacity: 0.7; }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(40px, 6.5vw, 76px);
+    font-weight: 800;
+    line-height: 1.06;
+    letter-spacing: -2px;
+    animation: fadeUp 0.7s 0.08s ease both;
+  }
+  .hero h1 .line1 { display: block; color: var(--text); }
+  /* line2 — warna tetap tidak diubah */
+  .hero h1 .line2 {
+    display: block;
+    background: linear-gradient(90deg, var(--tiktok), var(--accent), #00c6ff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    background-size: 200% auto;
+    animation: fadeUp 0.7s 0.12s ease both, shimmer 4s linear infinite;
+  }
+  @keyframes shimmer { to { background-position: 200% center; } }
+
+  .hero p {
+    margin: 22px auto 0;
+    font-size: 17px; color: var(--muted); line-height: 1.75;
+    max-width: 500px;
+    animation: fadeUp 0.7s 0.18s ease both;
+  }
+
+  /* ── PLATFORM PILLS ── */
+  .platforms {
+    display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+    margin-top: 28px;
+    animation: fadeUp 0.7s 0.25s ease both;
+  }
+  .platform-pill {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 16px; border-radius: 100px;
+    font-size: 13px; font-weight: 500;
+    border: 1px solid; cursor: default;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .platform-pill:hover { transform: translateY(-1px); }
+  /* warna pills tidak diubah */
+  .pill-tiktok { color: #ff0050; border-color: rgba(255,0,80,0.25); background: rgba(255,0,80,0.06); }
+  .pill-ig     { color: #f09433; border-color: rgba(240,148,51,0.25); background: rgba(240,148,51,0.06); }
+  .pill-yt     { color: #ff4444; border-color: rgba(255,68,68,0.25); background: rgba(255,68,68,0.06); }
+  .pill-icon   { width: 16px; height: 16px; }
+
+  /* ── INPUT CARD ── */
+  .input-section {
+    max-width: 720px; margin: 44px auto 0;
+    padding: 0 20px;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+  .input-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 28px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+  }
+
+  /* ── TABS ── */
+  .platform-tabs {
+    display: flex; gap: 6px; margin-bottom: 20px;
+    background: var(--surface); padding: 4px; border-radius: 13px;
+  }
+  .tab-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 9px 14px; border-radius: 9px;
+    font-size: 13.5px; font-weight: 500;
+    background: transparent; border: none; color: var(--muted);
+    cursor: pointer; transition: all 0.2s ease;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tab-btn.active {
+    background: var(--card-hover);
+    color: var(--text);
+    box-shadow: 0 1px 8px rgba(0,0,0,0.25);
+  }
+  /* warna aktif tab per platform tidak diubah */
+  .tab-btn.active.tiktok    { color: #ff0050; }
+  .tab-btn.active.instagram { color: #f09433; }
+  .tab-btn.active.youtube   { color: #ff4444; }
+  .tab-icon { font-size: 15px; }
+
+  /* ── INPUT ROW ── */
+  .input-row { display: flex; gap: 10px; align-items: stretch; }
+
+  .url-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 14.5px; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .url-input::placeholder { color: var(--muted2); }
+  .url-input:focus {
+    border-color: var(--accent-border);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  .btn-paste {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--muted); font-size: 13.5px;
+    cursor: pointer; transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+  }
+  .btn-paste:hover { color: var(--text); border-color: var(--border-hover); background: var(--card-hover); }
+
+  .btn-download {
+    background: var(--accent);
+    border: none; border-radius: 12px;
+    padding: 14px 26px;
+    color: #fff; font-size: 14.5px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s ease;
+    font-family: 'DM Sans', sans-serif;
+    display: flex; align-items: center; gap: 8px;
+    white-space: nowrap;
+  }
+  .btn-download:hover { background: #6d2ef0; box-shadow: 0 8px 28px rgba(124,58,255,0.35); transform: translateY(-1px); }
+  .btn-download:active { transform: translateY(0); box-shadow: none; }
+  .btn-download.loading .btn-text { opacity: 0; }
+  .btn-download.loading .spinner { display: block; }
+  .spinner { display: none; width: 17px; height: 17px; }
+  .spinner circle {
+    fill: none; stroke: white; stroke-width: 2.5;
+    stroke-dasharray: 45; stroke-dashoffset: 45;
+    transform-origin: center;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { stroke-dashoffset: -45; transform: rotate(360deg); } }
+
+  /* ── RESULT CARD ── */
+  .result-section {
+    max-width: 720px; margin: 0 auto;
+    padding: 0 20px; display: none;
+  }
+  .result-section.visible { display: block; animation: fadeUp 0.4s ease; }
+
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    margin-top: 16px;
+  }
+
+  .result-header { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 20px; }
+  .result-thumb {
+    width: 88px; height: 64px; border-radius: 10px;
+    background: var(--surface); object-fit: cover; flex-shrink: 0;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+  }
+  .result-info { flex: 1; min-width: 0; }
+  .result-platform {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; margin-bottom: 5px;
+  }
+  .result-title {
+    font-size: 14.5px; font-weight: 500; line-height: 1.4;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 8px;
+  }
+  .result-meta { display: flex; gap: 8px; }
+  .meta-tag {
+    font-size: 11.5px; color: var(--muted);
+    background: var(--surface); padding: 3px 10px; border-radius: 100px;
+    border: 1px solid var(--border);
+  }
+
+  .quality-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+
+  .quality-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px;
+    display: flex; flex-direction: column; gap: 4px;
+    cursor: pointer; transition: all 0.2s ease;
+    text-align: left; position: relative; overflow: hidden;
+  }
+  .quality-btn:hover {
+    border-color: var(--accent-border);
+    background: var(--card-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  }
+  .q-label { font-size: 16px; font-weight: 700; font-family: 'Syne', sans-serif; color: var(--text); }
+  .q-desc  { font-size: 11.5px; color: var(--muted); }
+  .q-badge {
+    position: absolute; top: 10px; right: 10px;
+    font-size: 9.5px; padding: 2px 7px; border-radius: 100px;
+    font-weight: 600; letter-spacing: 0.4px;
+  }
+  .badge-hd    { background: rgba(124,58,255,0.12); color: #c4aaff; border: 1px solid rgba(124,58,255,0.2); }
+  .badge-audio { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+
+  /* ── PROGRESS ── */
+  .progress-section {
+    max-width: 720px; margin: 12px auto 0;
+    padding: 0 20px; display: none;
+  }
+  .progress-section.visible { display: block; animation: fadeUp 0.35s ease; }
+  .progress-wrap {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px;
+  }
+  .progress-label {
+    font-size: 13px; color: var(--muted); margin-bottom: 10px;
+    display: flex; justify-content: space-between;
+  }
+  .progress-bar-bg { height: 4px; background: var(--surface); border-radius: 100px; overflow: hidden; }
+  .progress-bar-fill {
+    height: 100%; border-radius: 100px;
+    background: var(--accent);
+    width: 0%; transition: width 0.3s ease;
+  }
+
+  /* ── STATS ── */
+  .stats {
+    max-width: 720px; margin: 56px auto;
+    padding: 0 20px;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--border); border-radius: 18px; overflow: hidden;
+  }
+  .stat-box {
+    background: var(--card); padding: 28px 20px; text-align: center;
+  }
+  .stat-box + .stat-box { border-left: 1px solid var(--border); }
+  .stat-num {
+    font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800;
+    color: var(--text); margin-bottom: 5px;
+  }
+  .stat-label { font-size: 12.5px; color: var(--muted); }
+
+  /* ── FEATURES ── */
+  .features {
+    max-width: 960px; margin: 0 auto;
+    padding: 0 20px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;
+  }
+  .feat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    padding: 24px;
+    transition: border-color 0.2s, background 0.2s;
+    animation: fadeUp 0.7s ease both;
+  }
+  .feat-card:hover { border-color: var(--border-hover); background: var(--card-hover); }
+  .feat-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; margin-bottom: 14px;
+    background: var(--accent-dim);
+  }
+  /* fi1-fi6 semua pakai accent-dim supaya konsisten */
+  .fi1,.fi2,.fi3,.fi4,.fi5,.fi6 { background: var(--accent-dim); }
+  .feat-card h3 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .feat-card p  { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+
+  .feat-card:nth-child(1) { animation-delay: 0.05s; }
+  .feat-card:nth-child(2) { animation-delay: 0.10s; }
+  .feat-card:nth-child(3) { animation-delay: 0.15s; }
+  .feat-card:nth-child(4) { animation-delay: 0.20s; }
+  .feat-card:nth-child(5) { animation-delay: 0.25s; }
+  .feat-card:nth-child(6) { animation-delay: 0.30s; }
+
+  /* ── HOW TO ── */
+  .howto {
+    max-width: 720px; margin: 0 auto 80px;
+    padding: 0 20px;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
+    text-align: center; margin-bottom: 32px;
+  }
+  .steps { display: flex; flex-direction: column; gap: 10px; }
+  .step {
+    display: flex; gap: 18px; align-items: flex-start;
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 18px 22px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .step:hover { border-color: var(--border-hover); background: var(--card-hover); }
+  .step-num {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800;
+    background: var(--accent-dim); color: #c4aaff;
+    border: 1px solid var(--accent-border);
+  }
+  .step-content h4 { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+  .step-content p  { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    max-width: 720px; margin: 56px auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 48px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;
+  }
+  .footer-left  { font-size: 12.5px; color: var(--muted); }
+  .footer-right { display: flex; gap: 18px; }
+  .footer-link  { font-size: 12.5px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .footer-link:hover { color: var(--text); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(16px);
+    background: var(--card); border: 1px solid var(--border);
+    padding: 12px 22px; border-radius: 100px;
+    font-size: 13.5px; font-weight: 500;
+    display: flex; align-items: center; gap: 9px;
+    opacity: 0; transition: all 0.35s ease; z-index: 999;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: rgba(124,58,255,0.3); }
+  .toast.error   { border-color: rgba(255,0,80,0.25); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 640px) {
+    nav { padding: 16px 20px; }
+    .hero { padding: 60px 20px 36px; }
+    .input-row { flex-direction: column; }
+    .btn-paste { display: none; }
+    .btn-download { justify-content: center; }
+    .stats { grid-template-columns: 1fr; }
+    .stat-box + .stat-box { border-left: none; border-top: 1px solid var(--border); }
+    footer { flex-direction: column; align-items: flex-start; padding: 28px 20px; }
+    .tab-btn span { display: none; }
+    .tab-btn { padding: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-layer">
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+  <div class="bg-orb orb3"></div>
+  <div class="bg-orb orb4"></div>
+</div>
+
+<div class="wrapper">
+  <!-- NAV -->
+  <nav>
+    <img src="logosave.png" alt="zSave" class="logo-img">
+    <div class="nav-badge">✦ Free · No Watermark · HD</div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-tag">Download Video Tanpa Watermark</div>
+    <h1>
+      <span class="line1">Simpan Video dari</span>
+      <span class="line2">Platform Favoritmu</span>
+    </h1>
+    <p>Download video TikTok, Instagram Reels, dan YouTube Shorts dalam hitungan detik. Gratis, cepat, dan tanpa watermark.</p>
+
+    <div class="platforms">
+      <div class="platform-pill pill-tiktok">
+        <svg class="pill-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.16 8.16 0 004.77 1.52V6.73a4.85 4.85 0 01-1-.04z"/></svg>
+        TikTok
+      </div>
+      <div class="platform-pill pill-ig">
+        <svg class="pill-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+        Instagram
+      </div>
+      <div class="platform-pill pill-yt">
+        <svg class="pill-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+        YouTube Shorts
+      </div>
+    </div>
+  </section>
+
+  <!-- INPUT CARD -->
+  <section class="input-section">
+    <div class="input-card">
+      <div class="platform-tabs" id="tabs">
+        <button class="tab-btn active tiktok" data-platform="tiktok" onclick="switchTab(this)">
+          <span class="tab-icon">🎵</span><span>TikTok</span>
+        </button>
+        <button class="tab-btn instagram" data-platform="instagram" onclick="switchTab(this)">
+          <span class="tab-icon">📸</span><span>Instagram</span>
+        </button>
+        <button class="tab-btn youtube" data-platform="youtube" onclick="switchTab(this)">
+          <span class="tab-icon">▶️</span><span>YouTube</span>
+        </button>
+      </div>
+
+      <div class="input-row">
+        <input type="url" class="url-input" id="urlInput"
+          placeholder="Paste link TikTok, Instagram, atau YouTube Shorts di sini..."
+          oninput="updatePlaceholder()" />
+        <button class="btn-paste" onclick="pasteFromClipboard()">📋 Paste</button>
+        <button class="btn-download" id="downloadBtn" onclick="handleDownload()">
+          <span class="btn-text">⬇ Download</span>
+          <svg class="spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="result-section" id="resultSection">
+    <div class="result-card">
+      <div class="result-header">
+        <div class="result-thumb" id="resultThumb" style="display:flex;align-items:center;justify-content:center;font-size:28px;"></div>
+        <div class="result-info">
+          <div class="result-platform" id="resultPlatform"></div>
+          <div class="result-title" id="resultTitle">Video Found</div>
+          <div class="result-meta">
+            <span class="meta-tag" id="resultDuration">--:--</span>
+            <span class="meta-tag" id="resultSize">~est. size</span>
+          </div>
+        </div>
+      </div>
+      <div class="quality-grid" id="qualityGrid"></div>
+    </div>
+  </section>
+
+  <!-- PROGRESS -->
+  <section class="progress-section" id="progressSection">
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="progressLabel">Mendownload...</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-box">
+      <div class="stat-num">10M+</div>
+      <div class="stat-label">Video Didownload</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">3</div>
+      <div class="stat-label">Platform Didukung</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Gratis & No Watermark</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="feat-card">
+      <div class="feat-icon fi1">⚡</div>
+      <h3>Super Cepat</h3>
+      <p>Proses download hanya dalam 2-5 detik. Server kami dioptimasi untuk kecepatan maksimal.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon fi2">🚫</div>
+      <h3>Tanpa Watermark</h3>
+      <p>Video TikTok diunduh tanpa logo watermark sehingga tampak bersih dan profesional.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon fi3">🎬</div>
+      <h3>Kualitas HD</h3>
+      <p>Pilih kualitas hingga 1080p Full HD. Nikmati video dengan resolusi terbaik.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon fi4">🎵</div>
+      <h3>Ekstrak Audio</h3>
+      <p>Download hanya audionya dalam format MP3 untuk dijadikan ringtone atau konten.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon fi5">🔒</div>
+      <h3>Aman & Private</h3>
+      <p>Kami tidak menyimpan video atau data pribadimu. 100% aman dan terpercaya.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon fi6">📱</div>
+      <h3>Semua Perangkat</h3>
+      <p>Bekerja sempurna di HP, tablet, maupun desktop tanpa perlu install aplikasi.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- HOW TO -->
+  <section class="howto">
+    <h2 class="section-title">Cara Menggunakan</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Salin Link Video</h4>
+          <p>Buka TikTok, Instagram, atau YouTube Shorts, lalu salin link video yang ingin kamu download.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Tempel di SaveIt</h4>
+          <p>Kembali ke zSave, pilih platform yang sesuai dan tempel link di kolom input yang tersedia.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Pilih Kualitas & Download</h4>
+          <p>Klik tombol Download, pilih kualitas yang kamu inginkan, dan file akan tersimpan otomatis.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-left">© 2025 zSave — Dibuat dengan ❤ untuk para kreator</div>
+    <div class="footer-right">
+      <a href="#" class="footer-link">Syarat Layanan</a>
+      <a href="#" class="footer-link">Kebijakan Privasi</a>
+      <a href="#" class="footer-link">Kontak</a>
+    </div>
+  </footer>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── CONFIG ──
+  // TikTok  → TikWM (gratis, no key)
+  const TIKWM_API   = 'https://www.tikwm.com/api/';
+  // Instagram → RapidAPI instagram120
+  const RAPIDAPI_KEY = 'cad4241e5emsh63b006639e5b0d2p1c5d56jsn51547c965904';
+  const RAPIDAPI_IG_HOST = 'instagram120.p.rapidapi.com';
+  // YouTube Shorts → Cobalt community instance (support YT, no key)
+  const COBALT_INSTANCE = 'https://dwnld.nichind.dev'; // community instance aktif
+
+  // ── STATE ──
+  let currentPlatform = 'tiktok';
+  let lastDownloadUrl = null;
+
+  const placeholders = {
+    tiktok: 'Paste link TikTok di sini... (https://www.tiktok.com/...)',
+    instagram: 'Paste link Instagram Reels di sini... (https://www.instagram.com/reel/...)',
+    youtube: 'Paste link YouTube Shorts di sini... (https://youtube.com/shorts/...)'
+  };
+
+  const platformMeta = {
+    tiktok:    { emoji: '🎵', color: '#ff0050', label: 'TIKTOK' },
+    instagram: { emoji: '📸', color: '#f09433', label: 'INSTAGRAM REELS' },
+    youtube:   { emoji: '▶️', color: '#ff3b3b', label: 'YOUTUBE SHORTS' }
+  };
+
+  // ── TAB SWITCH ──
+  function switchTab(el) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    currentPlatform = el.dataset.platform;
+    updatePlaceholder();
+    hideResult();
+    el.style.transform = 'scale(0.96)';
+    setTimeout(() => el.style.transform = '', 150);
+  }
+
+  function updatePlaceholder() {
+    document.getElementById('urlInput').placeholder = placeholders[currentPlatform];
+  }
+
+  // ── PASTE ──
+  async function pasteFromClipboard() {
+    try {
+      const text = await navigator.clipboard.readText();
+      document.getElementById('urlInput').value = text;
+      showToast('✓ Link berhasil di-paste!', 'success');
+    } catch {
+      showToast('Izinkan akses clipboard di browser.', 'error');
+    }
+  }
+
+  // ── DETECT PLATFORM FROM URL ──
+  function detectPlatform(url) {
+    if (url.includes('tiktok.com')) return 'tiktok';
+    if (url.includes('instagram.com')) return 'instagram';
+    if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+    return null;
+  }
+
+  // ── VALIDATE URL ──
+  function isValidUrl(str) {
+    try { new URL(str); return true; } catch { return false; }
+  }
+
+  // ── CALL TIKWM API (TikTok) ──
+  async function fetchTikWM(videoUrl) {
+    const res = await fetch(TIKWM_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ url: videoUrl, count: 12, cursor: 0, web: 1, hd: 1 })
+    });
+    if (!res.ok) throw new Error(`TikWM HTTP ${res.status}`);
+    const json = await res.json();
+    if (json.code !== 0) throw new Error(json.msg || 'TikWM error');
+    return json.data;
+  }
+
+  // ── CALL RAPIDAPI instagram120 (Instagram) ──
+  async function fetchInstagram(videoUrl) {
+    const res = await fetch(`https://${RAPIDAPI_IG_HOST}/api/instagram/links`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-rapidapi-host': RAPIDAPI_IG_HOST,
+        'x-rapidapi-key': RAPIDAPI_KEY
+      },
+      body: JSON.stringify({ url: videoUrl })
+    });
+    if (!res.ok) throw new Error(`RapidAPI HTTP ${res.status}`);
+    const json = await res.json();
+    if (!json.data && !json.links && !json.items) throw new Error('Instagram: media tidak ditemukan atau akun privat');
+    return json;
+  }
+
+  // ── CALL COBALT COMMUNITY INSTANCE (YouTube Shorts) ──
+  async function fetchCobaltYT(videoUrl) {
+    const res = await fetch(`${COBALT_INSTANCE}/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ url: videoUrl })
+    });
+    if (!res.ok) throw new Error(`Cobalt YT HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ── [DEPRECATED - kept for audio re-fetch compat] ──
+  async function fetchCobalt(videoUrl, options = {}) {
+    const body = { url: videoUrl, ...options };
+    const res = await fetch(`${COBALT_API}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ── HANDLE DOWNLOAD (main button) ──
+  async function handleDownload() {
+    const url = document.getElementById('urlInput').value.trim();
+
+    if (!url) { showToast('⚠ Masukkan link video terlebih dahulu.', 'error'); shakeInput(); return; }
+    if (!isValidUrl(url)) { showToast('⚠ Link tidak valid.', 'error'); shakeInput(); return; }
+
+    // Auto-detect & switch tab
+    const detected = detectPlatform(url);
+    if (detected && detected !== currentPlatform) {
+      document.querySelector(`[data-platform="${detected}"]`).click();
+    }
+    const platform = detected || currentPlatform;
+
+    const btn = document.getElementById('downloadBtn');
+    btn.classList.add('loading');
+    hideResult();
+
+    try {
+      let data;
+
+      if (platform === 'tiktok') {
+        // TikTok → TikWM API
+        const tikData = await fetchTikWM(url);
+        data = {
+          _source: 'tikwm',
+          title: tikData.title || 'TikTok Video',
+          videoUrl: tikData.play,       // no-watermark SD
+          videoHdUrl: tikData.hdplay,   // no-watermark HD
+          audioUrl: tikData.music,      // audio only
+          thumb: tikData.cover
+        };
+
+      } else if (platform === 'instagram') {
+        const igData = await fetchInstagram(url);
+        // /api/instagram/links returns: { data: [ { url, type, quality } ] } or { links: [...] }
+        const links = igData.data || igData.links || igData.items || [];
+        const videoLink = Array.isArray(links)
+          ? links.find(l => l.type === 'video' || l.content_type?.includes('video') || l.url?.includes('.mp4'))
+          : null;
+        const thumbLink = Array.isArray(links)
+          ? links.find(l => l.type === 'image' || l.type === 'thumbnail' || l.content_type?.includes('image'))
+          : null;
+        data = {
+          _source: 'rapidapi_ig',
+          title: igData.caption?.slice(0, 60) || igData.title || 'Instagram Reels',
+          videoUrl: videoLink?.url || (typeof links[0] === 'string' ? links[0] : links[0]?.url) || null,
+          thumbUrl: thumbLink?.url || igData.thumbnail || null,
+          audioUrl: null
+        };
+
+      } else {
+        // YouTube Shorts → Cobalt community instance
+        const ytData = await fetchCobaltYT(url);
+        data = {
+          _source: 'cobalt_yt',
+          title: ytData.filename || 'YouTube Shorts',
+          videoUrl: ytData.url,
+          audioUrl: null,
+          _cobaltRaw: ytData
+        };
+      }
+
+      btn.classList.remove('loading');
+      showResult(platform, url, data);
+    } catch (err) {
+      btn.classList.remove('loading');
+      console.error(err);
+      showToast('❌ ' + (err.message || 'Gagal memproses. Cek URL atau coba lagi.'), 'error');
+    }
+  }
+
+  // ── SHOW RESULT ──
+  function showResult(platform, originalUrl, data) {
+    const meta = platformMeta[platform] || platformMeta.tiktok;
+    const section = document.getElementById('resultSection');
+
+    document.getElementById('resultThumb').textContent = meta.emoji;
+    document.getElementById('resultThumb').style.background = meta.color + '20';
+    document.getElementById('resultPlatform').textContent = meta.label;
+    document.getElementById('resultPlatform').style.color = meta.color;
+    document.getElementById('resultDuration').textContent = '⏱ Video siap';
+    document.getElementById('resultSize').textContent = '✓ Berhasil diproses';
+
+    const title = data.title || 'Video';
+    document.getElementById('resultTitle').textContent = title.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
+
+    const grid = document.getElementById('qualityGrid');
+    grid.innerHTML = '';
+
+    const src = data._source;
+
+    if (src === 'tikwm') {
+      // TikTok: HD + SD + Audio
+      if (data.videoHdUrl) {
+        const hdBtn = makeQualityBtn('Video HD', 'Tanpa Watermark · HD', 'HD', 'badge-hd', 'MP4', () => triggerDownload(data.videoHdUrl, title + '_hd.mp4'));
+        grid.appendChild(hdBtn);
+      }
+      if (data.videoUrl) {
+        const sdBtn = makeQualityBtn('Video SD', 'Tanpa Watermark', 'SD', 'badge-audio', 'MP4', () => triggerDownload(data.videoUrl, title + '.mp4'));
+        grid.appendChild(sdBtn);
+      }
+      if (data.audioUrl) {
+        const audioBtn = makeQualityBtn('Audio', 'MP3 · Audio Only', '♫', 'badge-audio', 'MP3', () => triggerDownload(data.audioUrl, title + '.mp3'));
+        grid.appendChild(audioBtn);
+      }
+      if (!data.videoUrl && !data.videoHdUrl) {
+        grid.innerHTML = `<div style="color:var(--muted);font-size:14px;padding:12px;">⚠ Video tidak tersedia. Link mungkin sudah expired.</div>`;
+      }
+
+    } else if (src === 'rapidapi_ig') {
+      // Instagram — instagram120 API
+      if (data.videoUrl) {
+        const videoBtn = makeQualityBtn('Video', 'Kualitas Terbaik', 'HD', 'badge-hd', 'MP4', () => triggerDownload(data.videoUrl, title + '.mp4'));
+        grid.appendChild(videoBtn);
+      }
+      if (data.thumbUrl) {
+        const thumbBtn = makeQualityBtn('Thumbnail', 'Gambar Cover', '🖼', 'badge-hd', 'JPG', () => triggerDownload(data.thumbUrl, title + '.jpg'));
+        grid.appendChild(thumbBtn);
+      }
+      if (!data.videoUrl && !data.thumbUrl) {
+        grid.innerHTML = `<div style="color:var(--muted);font-size:14px;padding:12px;">⚠ Video tidak ditemukan. Pastikan link Reels valid dan akun tidak privat.</div>`;
+      }
+
+    } else if (src === 'cobalt_yt') {
+      // YouTube Shorts — handle cobalt response format
+      const ytRaw = data._cobaltRaw;
+      if (ytRaw?.url || ytRaw?.status === 'redirect' || ytRaw?.status === 'tunnel') {
+        const dlUrl = ytRaw.url;
+        const videoBtn = makeQualityBtn('Video', 'YouTube Shorts', 'HD', 'badge-hd', 'MP4', () => triggerDownload(dlUrl, title + '.mp4'));
+        grid.appendChild(videoBtn);
+      } else if (ytRaw?.status === 'picker' && ytRaw?.picker?.length) {
+        ytRaw.picker.forEach((item, i) => {
+          const btn = makeQualityBtn(`Item ${i + 1}`, item.type || 'Media', 'HD', 'badge-hd', 'MP4', () => triggerDownload(item.url, `${title}_${i+1}.mp4`));
+          grid.appendChild(btn);
+        });
+      } else {
+        grid.innerHTML = `<div style="color:var(--muted);font-size:14px;padding:12px;">⚠ ${ytRaw?.error?.code || 'Format tidak didukung atau link sudah expired.'}</div>`;
+      }
+
+    } else {
+      grid.innerHTML = `<div style="color:var(--muted);font-size:14px;padding:12px;">⚠ Format tidak dikenali.</div>`;
+    }
+
+    section.classList.add('visible');
+    section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // ── MAKE QUALITY BUTTON ──
+  function makeQualityBtn(label, desc, badge, badgeClass, ext, onClick) {
+    const btn = document.createElement('button');
+    btn.className = 'quality-btn';
+    btn.innerHTML = `
+      <div class="q-label">${label}</div>
+      <div class="q-desc">${desc}</div>
+      <span class="q-badge ${badgeClass}">${badge}</span>
+    `;
+    btn.addEventListener('click', () => {
+      btn.style.background = 'rgba(124,58,255,0.15)';
+      btn.style.borderColor = 'rgba(124,58,255,0.4)';
+      onClick();
+      showProgressBar(label, ext);
+    });
+    return btn;
+  }
+
+  // ── TRIGGER ACTUAL FILE DOWNLOAD ──
+  async function triggerDownload(url, filename) {
+    showToast('⏳ Menyiapkan download...', '');
+    try {
+      // Route melalui proxy Vercel supaya tidak kena CORS
+      const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+      const res = await fetch(proxyUrl);
+      if (!res.ok) throw new Error(`Proxy error ${res.status}`);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      showToast('✓ Download berhasil!', 'success');
+    } catch (err) {
+      console.error('Download error:', err);
+      // Fallback: buka langsung, user bisa long-press save
+      window.open(url, '_blank');
+      showToast('📥 Tekan lama pada video → Simpan video', 'success');
+    }
+  }
+
+  // ── SHOW PROGRESS BAR (visual only) ──
+  function showProgressBar(label, ext) {
+    const prog = document.getElementById('progressSection');
+    const fill = document.getElementById('progressFill');
+    const pct = document.getElementById('progressPct');
+    const lbl = document.getElementById('progressLabel');
+
+    lbl.textContent = `Mendownload ${label} ${ext}...`;
+    fill.style.width = '0%';
+    pct.textContent = '0%';
+    prog.classList.add('visible');
+
+    let p = 0;
+    const iv = setInterval(() => {
+      p += Math.random() * 15 + 5;
+      if (p >= 100) {
+        p = 100; clearInterval(iv);
+        lbl.textContent = '✓ Download selesai!';
+        setTimeout(() => prog.classList.remove('visible'), 1500);
+      }
+      fill.style.width = p + '%';
+      pct.textContent = Math.floor(p) + '%';
+    }, 150);
+  }
+
+  function hideResult() {
+    document.getElementById('resultSection').classList.remove('visible');
+    document.getElementById('progressSection').classList.remove('visible');
+  }
+
+  // ── HELPERS ──
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function shakeInput() {
+    const inp = document.getElementById('urlInput');
+    inp.style.borderColor = 'rgba(255,0,80,0.5)';
+    inp.style.boxShadow = '0 0 0 3px rgba(255,0,80,0.12)';
+    setTimeout(() => { inp.style.borderColor = ''; inp.style.boxShadow = ''; }, 1200);
+  }
+
+  let toastTimer;
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ── ENTER KEY ──
+  document.getElementById('urlInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleDownload();
+  });
+
+  // ── INIT ──
+  updatePlaceholder();
+
+  // ── PWA: Inline Service Worker ──
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+const CACHE = 'zsave-v1';
+const ASSETS = ['./zsave.html', './manifest.json', './logosave.png'];
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>{})));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+  ));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  if (e.request.url.includes('railway.app')) return;
+  if (e.request.url.includes('googleapis.com')) return;
+  e.respondWith(
+    fetch(e.request).then(res => {
+      const clone = res.clone();
+      caches.open(CACHE).then(c => c.put(e.request, clone));
+      return res;
+    }).catch(() => caches.match(e.request))
+  );
+});
+    `;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl)
+      .then(() => console.log('✅ zSave SW registered'))
+      .catch(err => console.log('SW skip (preview):', err.message));
+  }
+
+  // ── PWA: Install Prompt Banner ──
+  let deferredPrompt;
+  const installBanner = document.getElementById('installBanner');
+  const installBtn = document.getElementById('installBtn');
+  const dismissBtn = document.getElementById('dismissBtn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBanner.classList.add('show');
+  });
+
+  installBtn?.addEventListener('click', async () => {
+    installBanner.classList.remove('show');
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') showToast('✓ zSave berhasil diinstall!', 'success');
+      deferredPrompt = null;
+    }
+  });
+
+  dismissBtn?.addEventListener('click', () => {
+    installBanner.classList.remove('show');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    showToast('✓ zSave sudah terinstall di HP kamu!', 'success');
+    installBanner.classList.remove('show');
+  });
+</script>
+
+<!-- PWA Install Banner -->
+<div id="installBanner" class="install-banner">
+  <img src="logosave.png" alt="zSave" style="height:36px;width:36px;object-fit:contain;border-radius:8px;">
+  <div class="install-text">
+    <strong>Install zSave</strong>
+    <span>Tambahkan ke layar utama HP kamu</span>
+  </div>
+  <button id="installBtn" class="install-btn">Install</button>
+  <button id="dismissBtn" class="dismiss-btn">✕</button>
+</div>
+
+<style>
+  .install-banner {
+    position: fixed; bottom: 80px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--card);
+    border: 1px solid rgba(124,58,255,0.3);
+    border-radius: 18px; padding: 14px 18px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    z-index: 998; width: calc(100% - 48px); max-width: 420px;
+    opacity: 0; pointer-events: none;
+    transition: all 0.4s ease;
+  }
+  .install-banner.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: all; }
+  .install-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .install-text strong { font-size: 14px; color: var(--text); }
+  .install-text span { font-size: 12px; color: var(--muted); }
+  .install-btn {
+    background: var(--accent);
+    border: none; border-radius: 10px; padding: 8px 16px;
+    color: #fff; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+  }
+  .dismiss-btn {
+    background: none; border: none; color: var(--muted);
+    font-size: 16px; cursor: pointer; padding: 4px; line-height: 1;
+  }
+</style>
+</body>
+</html>
